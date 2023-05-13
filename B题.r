@@ -117,6 +117,13 @@ xy_improved <- xy_train[, c(1:6, 41:46, 81:86, 121:126, 161:166, 200, 201, 214, 
 xy_svm <- svmWithTimer("linear", xy_improved)
 xy_predict <- predict(xy_svm, xy_train)
 xy_table <- table(Actual = xy_train$y, Predicted = xy_predict)
+xy_svm <- svmWithTimer("linear", xy_improved)
+xy_svm <- svmWithTimer("radial", xy_improved)
+xy_svm <- svmWithTimer("polynomial", xy_improved)
+xy_svm <- svmWithTimer("sigmoid", xy_improved)
+xy_accuracy_train <- predictWithTimer(xy_train, xy_svm)
+xy_accuracy_test <- predictWithTimer(xy_test, xy_svm)
+xy_svm
 for (kernel in c("linear", "radial", "polynomial", "sigmoid")) {
     xy_svm <- svmWithTimer(kernel, xy_improved)
     predictWithTimer(xy_train, xy_svm, paste0("第三问-预测结果/训练集改进", kernel, ".csv"))
