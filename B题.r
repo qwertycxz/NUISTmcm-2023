@@ -39,10 +39,10 @@ plot(x_factor_7$loadings, type = "n")
 text(x_factor_7$loadings, labels = names(x_train))
 
 # 第二问:完成!
-xy_train <- read.csv("xy_train.csv")
+xy_train <- read.csv("xy_train_filtered.csv")
 y_train <- as.factor(xy_train$y)
 xy_train$y <- y_train
-xy_test <- read.csv("xy_test.csv")
+xy_test <- read.csv("xy_test_filtered.csv")
 y_test <- as.factor(xy_test$y)
 xy_test$y <- y_test
 svmWithTimer <- function(kernel = "radial", data = xy_train) {
@@ -58,12 +58,15 @@ xy_svm <- svmWithTimer("polynomial")
 xy_svm <- svmWithTimer("sigmoid")
 xy_svm
 plot(xy_svm, data = xy_train, tBodyAcc.mean...X ~ tBodyAcc.mean...Y)
-predictWithTimer <- function(data, model) {
+predictWithTimer <- function(data, model, output = NULL) {
     start_time <- Sys.time()
     xy_predict <- predict(model, data)
     end_time <- Sys.time()
     print(end_time - start_time)
     xy_table <- table(Actual = data$y, Predicted = xy_predict)
+    if (!is.null(output)) {
+        write.csv(xy_table, output)
+    }
     return(sum(diag(xy_table)) / sum(xy_table))
 }
 xy_accuracy <- predictWithTimer(xy_train, xy_svm)
@@ -76,3 +79,46 @@ xy_svm <- svmWithTimer("polynomial", xy_filtered)
 xy_svm <- svmWithTimer("sigmoid", xy_filtered)
 xy_accuracy <- predictWithTimer(xy_train, xy_svm)
 xy_accuracy <- predictWithTimer(xy_test, xy_svm)
+
+# 第三问:完成
+xy_train <- read.csv("xy_train.csv")
+y_train <- as.factor(xy_train$y)
+xy_train$y <- y_train
+xy_test <- read.csv("xy_test.csv")
+y_test <- as.factor(xy_test$y)
+xy_test$y <- y_test
+xy_svm <- svmWithTimer("linear")
+xy_svm <- svmWithTimer()
+xy_svm <- svmWithTimer("polynomial")
+xy_svm <- svmWithTimer("sigmoid")
+xy_accuracy <- predictWithTimer(xy_train, xy_svm)
+xy_accuracy <- predictWithTimer(xy_test, xy_svm)
+xy_predict <- predict(xy_svm, xy_train)
+xy_table <- table(Actual = xy_train$y, Predicted = xy_predict)
+# 筛选
+xy_filtered <- xy_train[, c(1:6, 41:46, 81:86, 121:126, 200, 201, 214, 215, 227, 228, 253, 254, 555:562)]
+xy_svm <- svmWithTimer("linear", xy_filtered)
+xy_svm <- svmWithTimer("radial", xy_filtered)
+xy_svm <- svmWithTimer("polynomial", xy_filtered)
+xy_svm <- svmWithTimer("sigmoid", xy_filtered)
+xy_accuracy <- predictWithTimer(xy_train, xy_svm)
+xy_accuracy <- predictWithTimer(xy_test, xy_svm)
+# 批量输出
+for (kernel in c("linear", "radial", "polynomial", "sigmoid")) {
+    xy_svm <- svmWithTimer(kernel)
+    predictWithTimer(xy_train, xy_svm, paste0("第三问-预测结果/训练集全集", kernel, ".csv"))
+    predictWithTimer(xy_test, xy_svm, paste0("第三问-预测结果/测试集全集", kernel, ".csv"))
+    xy_svm <- svmWithTimer(kernel, xy_filtered)
+    predictWithTimer(xy_train, xy_svm, paste0("第三问-预测结果/训练集子集", kernel, ".csv"))
+    predictWithTimer(xy_test, xy_svm, paste0("第三问-预测结果/测试集子集", kernel, ".csv"))
+}
+# 改进
+xy_improved <- xy_train[, c(1:6, 41:46, 81:86, 121:126, 161:166, 200, 201, 214, 215, 227, 228, 240, 241, 253, 254, 555:562)]
+xy_svm <- svmWithTimer("linear", xy_improved)
+xy_predict <- predict(xy_svm, xy_train)
+xy_table <- table(Actual = xy_train$y, Predicted = xy_predict)
+for (kernel in c("linear", "radial", "polynomial", "sigmoid")) {
+    xy_svm <- svmWithTimer(kernel, xy_improved)
+    predictWithTimer(xy_train, xy_svm, paste0("第三问-预测结果/训练集改进", kernel, ".csv"))
+    predictWithTimer(xy_test, xy_svm, paste0("第三问-预测结果/测试集改进", kernel, ".csv"))
+}
