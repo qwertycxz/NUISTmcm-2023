@@ -1,5 +1,7 @@
 library("psych")
 library("nFactors")
+library("e1071")
+
 # 第一问:完成?
 x_train <- read.csv("X_train.csv")
 x_coefficient <- corr.test(x_train) # 警告: 这个函数会执行大约15min!
@@ -35,3 +37,42 @@ write.csv(x_factor_7$Vaccounted, "x_vaccount.csv")
 x_factor_7
 plot(x_factor_7$loadings, type = "n")
 text(x_factor_7$loadings, labels = names(x_train))
+
+# 第二问:完成!
+xy_train <- read.csv("xy_train.csv")
+y_train <- as.factor(xy_train$y)
+xy_train$y <- y_train
+xy_test <- read.csv("xy_test.csv")
+y_test <- as.factor(xy_test$y)
+xy_test$y <- y_test
+svmWithTimer <- function(kernel = "radial", data = xy_train) {
+    start_time <- Sys.time()
+    xy_svm <- svm(y ~ ., data, kernel = kernel)
+    end_time <- Sys.time()
+    print(end_time - start_time)
+    return(xy_svm)
+}
+xy_svm <- svmWithTimer()
+xy_svm <- svmWithTimer("linear") # 最好
+xy_svm <- svmWithTimer("polynomial")
+xy_svm <- svmWithTimer("sigmoid")
+xy_svm
+plot(xy_svm, data = xy_train, tBodyAcc.mean...X ~ tBodyAcc.mean...Y)
+predictWithTimer <- function(data, model) {
+    start_time <- Sys.time()
+    xy_predict <- predict(model, data)
+    end_time <- Sys.time()
+    print(end_time - start_time)
+    xy_table <- table(Actual = data$y, Predicted = xy_predict)
+    return(sum(diag(xy_table)) / sum(xy_table))
+}
+xy_accuracy <- predictWithTimer(xy_train, xy_svm)
+xy_accuracy <- predictWithTimer(xy_test, xy_svm)
+# 筛选
+xy_filtered <- xy_train[, c(1:6, 41:46, 81:86, 121:126, 200, 201, 214, 215, 227, 228, 253, 254, 555:562)]
+xy_svm <- svmWithTimer("linear", xy_filtered)
+xy_svm <- svmWithTimer("radial", xy_filtered)
+xy_svm <- svmWithTimer("polynomial", xy_filtered)
+xy_svm <- svmWithTimer("sigmoid", xy_filtered)
+xy_accuracy <- predictWithTimer(xy_train, xy_svm)
+xy_accuracy <- predictWithTimer(xy_test, xy_svm)
