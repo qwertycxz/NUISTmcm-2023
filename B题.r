@@ -129,3 +129,18 @@ for (kernel in c("linear", "radial", "polynomial", "sigmoid")) {
     predictWithTimer(xy_train, xy_svm, paste0("第三问-预测结果/训练集改进", kernel, ".csv"))
     predictWithTimer(xy_test, xy_svm, paste0("第三问-预测结果/测试集改进", kernel, ".csv"))
 }
+
+# 第四问
+xy_random <- xy_train[, c(1:3, 81:83, 121:123, 555:561)]
+xy_max <- apply(xy_random, 2, max)
+xy_min <- apply(xy_random, 2, min)
+xy_mean <- apply(xy_random, 2, mean)
+xy_nrow <- nrow(xy_filtered)
+xy_random <- xy_train
+for (r in c(1:3, 81:83, 121:123, 555:561)) {
+    xy_random[, r] <- runif(xy_nrow)
+}
+xy_random <- xy_random[, c(1:6, 41:46, 81:86, 121:126, 200, 201, 214, 215, 227, 228, 253, 254, 555:562)]
+xy_svm <- svmWithTimer("linear", xy_random)
+xy_accuracy <- predictWithTimer(xy_train, xy_svm, paste0("第三问-预测结果/训练集随机.csv"))
+xy_accuracy <- predictWithTimer(xy_test, xy_svm, paste0("第三问-预测结果/测试集随机.csv"))
